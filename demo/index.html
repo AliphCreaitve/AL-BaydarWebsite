@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Al Baydar — scroll video demo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ intro ============ -->
+<section class="pane pane--intro">
+  <div class="pane__inner">
+    <p class="eyebrow">Demo · one clip</p>
+    <h1>Scroll to enter<br>the building.</h1>
+    <p class="lede">
+      The clip plays on its own clock. What the scroll drives is the aperture
+      it's seen through — and the copy over it. Every setting is live in the
+      panel; tune it, then export the config.
+    </p>
+    <div class="scroll-cue"><span></span></div>
+  </div>
+</section>
+
+<!-- ============ the room section ============ -->
+<section class="rs" id="rs-1">
+  <div class="rs__stage">
+    <!-- fixed + centred; scroll animates its size, not the video -->
+    <div class="rs__aperture" data-aperture>
+      <!-- source is set by JS: the encode has to match the playback model -->
+      <video muted playsinline preload="auto" poster="../assets/walkthrough-poster.jpg"></video>
+      <div class="rs__tint"></div>
+      <div class="rs__vignette"></div>
+    </div>
+
+    <!-- copy sits outside the aperture so it is never clipped by it -->
+    <div class="rs__copy rs__copy--left" data-overlay data-in="0.06" data-out="0.46">
+      <p class="eyebrow">01 — Arrival</p>
+      <h2 data-split>The entrance</h2>
+      <p class="body">Where the work begins. Copy is scrubbed to the scrollbar
+        even though the footage is not.</p>
+    </div>
+
+    <div class="rs__copy rs__copy--right" data-overlay data-in="0.56" data-out="0.96">
+      <p class="eyebrow">02 — The room</p>
+      <h2 data-split>Inside the hall</h2>
+      <p class="body">Second beat of the same section. In the full site each
+        room gets its own clip and its own aperture move.</p>
+    </div>
+
+    <div class="rs__progress"><i data-progressbar></i></div>
+  </div>
+</section>
+
+<!-- ============ outro ============ -->
+<section class="pane pane--outro">
+  <div class="pane__inner">
+    <h2>Next room</h2>
+    <p class="lede">
+      Clip 02 picks up here — starting from the frame this one ended on, so the
+      building reads as one continuous space.
+    </p>
+  </div>
+</section>
+
+<!-- ============ control panel ============ -->
+<aside class="panel" id="panel">
+  <header class="panel__head">
+    <strong>Tuning</strong>
+    <button class="panel__toggle" id="panelToggle" title="Hide (press H)">—</button>
+  </header>
+
+  <div class="panel__body">
+
+    <div class="grp">
+      <label class="grp__title">Playback model</label>
+      <div class="seg" data-seg="mode">
+        <button data-val="scrub" class="is-on">scroll drives</button>
+        <button data-val="play">plays itself</button>
+      </div>
+      <p class="hint" id="modeHint"></p>
+    </div>
+
+    <div class="grp">
+      <label class="grp__title">Source clip</label>
+      <div class="seg" data-seg="source">
+        <button data-val="walkthrough" class="is-on">from photos</button>
+        <button data-val="demo">AI clip</button>
+      </div>
+      <p class="hint" id="sourceHint"></p>
+    </div>
+
+    <hr>
+
+    <div class="grp">
+      <label class="grp__title">Aperture <span class="tag">off by default</span></label>
+      <div class="row"><label for="apertureFromW">Start width</label><output id="apertureFromW_v"></output></div>
+      <input type="range" id="apertureFromW" min="20" max="100" step="1" value="100">
+      <div class="row"><label for="apertureFromH">Start height</label><output id="apertureFromH_v"></output></div>
+      <input type="range" id="apertureFromH" min="20" max="100" step="1" value="100">
+      <p class="hint">Borrowed from oxman: the clip starts as a window and opens
+        to full-bleed as you scroll. At 100/100 it's off — full-bleed throughout.
+        Try 58 / 52 to see it.</p>
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="apertureSpan">Opens over</label><output id="apertureSpan_v"></output></div>
+      <input type="range" id="apertureSpan" min="0.1" max="1" step="0.01" value="0.55">
+      <p class="hint">How much of the section the opening takes.</p>
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="apertureRadius">Corner radius</label><output id="apertureRadius_v"></output></div>
+      <input type="range" id="apertureRadius" min="0" max="48" step="1" value="4">
+    </div>
+
+    <div class="grp">
+      <label class="grp__title">Aperture easing</label>
+      <div class="seg" data-seg="apertureEasing">
+        <button data-val="easeOut" class="is-on">out</button>
+        <button data-val="easeInOut">in-out</button>
+        <button data-val="linear">linear</button>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="grp">
+      <div class="row"><label for="vhPerSecond">Section length</label><output id="vhPerSecond_v"></output></div>
+      <input type="range" id="vhPerSecond" min="0.2" max="4" step="0.05" value="1.2">
+      <p class="hint">Viewport-heights of scroll per second of clip. Sets how long the section lasts.</p>
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="damping">Smoothing</label><output id="damping_v"></output></div>
+      <input type="range" id="damping" min="0" max="0.999" step="0.001" value="0.88">
+      <p class="hint">Weight on the aperture and copy. Oxman uses GSAP <code>scrub: 0.5</code>, which is the same idea.</p>
+    </div>
+
+    <hr>
+
+    <div class="grp">
+      <label class="grp__title">Copy reveal</label>
+      <div class="seg" data-seg="textReveal">
+        <button data-val="words" class="is-on">by word</button>
+        <button data-val="fade">whole block</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="wordStagger">Word stagger</label><output id="wordStagger_v"></output></div>
+      <input type="range" id="wordStagger" min="0" max="0.9" step="0.01" value="0.5">
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="overlayFade">Reveal window</label><output id="overlayFade_v"></output></div>
+      <input type="range" id="overlayFade" min="0.01" max="0.3" step="0.005" value="0.1">
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="overlayDrift">Copy drift</label><output id="overlayDrift_v"></output></div>
+      <input type="range" id="overlayDrift" min="0" max="120" step="1" value="28">
+    </div>
+
+    <hr>
+
+    <div class="grp">
+      <div class="row"><label for="tint">Tint over video</label><output id="tint_v"></output></div>
+      <input type="range" id="tint" min="0" max="0.85" step="0.01" value="0.3">
+      <p class="hint">Text legibility vs. image fidelity — the trade-off worth arguing about.</p>
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="vignette">Vignette</label><output id="vignette_v"></output></div>
+      <input type="range" id="vignette" min="0" max="1" step="0.01" value="0.4">
+    </div>
+
+    <hr>
+
+    <div class="grp">
+      <label class="chk"><input type="checkbox" id="loop" checked> Loop the clip</label>
+      <label class="chk"><input type="checkbox" id="restartOnEnter"> Restart on entry</label>
+      <label class="chk"><input type="checkbox" id="pauseOnExit" checked> Pause on exit</label>
+      <label class="chk"><input type="checkbox" id="showHud" checked> Debug HUD</label>
+      <label class="chk"><input type="checkbox" id="showBar" checked> Progress bar</label>
+    </div>
+
+    <div class="grp">
+      <button class="btn" id="copyCfg">Copy config JSON</button>
+      <button class="btn btn--ghost" id="resetCfg">Reset defaults</button>
+      <p class="hint" id="copyMsg"></p>
+    </div>
+
+  </div>
+</aside>
+
+<div class="hud" id="hud">
+  <div><span>fps</span><b id="hud_fps">—</b></div>
+  <div><span>scroll</span><b id="hud_p">—</b></div>
+  <div><span>clip time</span><b id="hud_t">—</b></div>
+  <div><span>transport</span><b id="hud_state">—</b></div>
+  <div><span>aperture</span><b id="hud_ap">—</b></div>
+</div>
+
+<button class="panel-open" id="panelOpen" hidden>Tuning</button>
+
+<script type="module" src="controls.js"></script>
+</body>
+</html>
