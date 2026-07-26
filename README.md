@@ -21,10 +21,17 @@ minutes. Everything after that is local.
 ## Run the demo
 
 ```bash
-npx serve -l 5177 .
+node scripts/serve.mjs
 ```
 
-Then open **http://localhost:5177/demo/**
+Then open **http://localhost:5177/demo/** — note the `/demo/`; the root shows
+nothing. Leave the terminal open; closing it stops the server.
+
+Port already taken? Pass another: `node scripts/serve.mjs 5178`
+
+The server is zero-dependency and supports HTTP Range requests, which video
+seeking needs — a static server without Range support makes scrubbing look
+broken.
 
 Press <kbd>H</kbd> to toggle the tuning panel. Adjust anything, then hit
 **Copy config JSON** — that output is the settings agreement for the full build.
@@ -71,10 +78,11 @@ Outputs, per clip:
 ## Layout
 
 ```
-assets/     source clips + processed derivatives
+assets/     source clips + generated derivatives (derivatives are gitignored)
+shots/      the original 12 MP photographs
 demo/       the tuning demo — scroll-video.js is the portable engine
-docs/       video-generation-spec.md — read before generating more clips
-scripts/    process-video.mjs
+docs/       architecture.md, video-generation-spec.md
+scripts/    serve.mjs, build-walkthrough.mjs, process-video.mjs
 ```
 
 ## The model
