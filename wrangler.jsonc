@@ -1,0 +1,15 @@
+{
+  // Deploy deterministically with:  npm run deploy
+  //
+  // "albaydar" matches the existing worker (albaydar.ceo-6c6.workers.dev), so
+  // this publishes to the same URL rather than creating a second one.
+  "name": "albaydar",
+  "compatibility_date": "2025-01-01",
+
+  // Static-assets-only Worker: no server code, just the contents of demo/.
+  // demo/ is the web root, which is why nothing inside it may reference ../ —
+  // a parent-relative path resolves above the root and 404s in production.
+  "assets": {
+    "directory": "./demo"
+  }
+}

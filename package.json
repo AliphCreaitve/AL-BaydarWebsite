@@ -1,17 +1,23 @@
 {
   "name": "albaydar-portfolio",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Scroll-driven building tour",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "serve": "node scripts/serve.mjs",
+    "build:walkthrough": "node scripts/build-walkthrough.mjs",
+    "build:assets": "node scripts/process-video.mjs assets/walkthrough.mp4 && node scripts/process-video.mjs assets/demo.mp4",
+    "deploy": "wrangler deploy",
+    "deploy:check": "wrangler versions list"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "ffmpeg-static": "^5.3.0",
-    "ffprobe-static": "^3.1.0"
+    "ffmpeg-static": "^5.3.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
   }
 }

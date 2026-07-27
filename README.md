@@ -89,6 +89,24 @@ scripts/       serve.mjs, build-walkthrough.mjs, process-video.mjs
 
 ## Deployment
 
+```bash
+npx wrangler login     # once
+npm run deploy
+```
+
+Publishes `demo/` to **albaydar.ceo-6c6.workers.dev**. Config is in
+[wrangler.jsonc](wrangler.jsonc); the worker name matches the existing one, so
+this updates that deployment rather than creating a second.
+
+Check what's actually live before assuming a push deployed:
+
+```bash
+curl -s https://albaydar.ceo-6c6.workers.dev/scroll-video.js | grep -n "assets/"
+```
+
+If that prints `../assets/`, you're looking at a stale build — the fix landed in
+`b83182c`, and anything still showing `../` predates it.
+
 The host serves **`demo/` as the web root**, which imposes two rules:
 
 1. **Never reference `../` from inside `demo/`.** A parent-relative path
