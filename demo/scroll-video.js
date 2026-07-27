@@ -20,6 +20,9 @@
  *   'scrub' — clip time bound to scroll position. Kept for comparison.
  */
 
+/** Used when the clip can't load, so the section still has scrollable height. */
+const FALLBACK_DURATION = 12;
+
 export class RoomSection {
   constructor(root, config) {
     this.root = root;
@@ -69,10 +72,43 @@ export class RoomSection {
         }
       });
 
+      let settled = false;
       const ready = () => {
+        if (settled) return;
+        settled = true;
+        this.loadError = null;
         this.duration = v.duration || 0;
         resolve();
       };
+
+      /**
+       * Never let a missing video collapse the section.
+       *
+       * Without this, a 404 leaves duration at 0, _applyLayout bails, the
+       * section gets no height, and the page scrolls straight past a black
+       * box — which reads as "the whole site is broken" rather than "one file
+       * is missing". Fall back to a nominal duration so the section still
+       * occupies space, and surface the reason.
+       */
+      const fail = (why) => {
+        if (settled) return;
+        settled = true;
+        this.loadError = why;
+        this.duration = FALLBACK_DURATION;
+        console.error(`[RoomSection] ${why} — using ${FALLBACK_DURATION}s fallback so ` +
+                      `the section still lays out.`);
+        this.onLoadError?.(why);
+        resolve();
+      };
+
+      v.addEventListener('error', () => fail('video element error'), { once: true });
+      // With <source> children the element only errors once every candidate
+      // fails, and some browsers stay silent — the timeout is the backstop.
+      this._loadTimer = setTimeout(() => fail('video load timed out (404?)'), 8000);
+
+      const done = () => { clearTimeout(this._loadTimer); };
+      v.addEventListener('loadeddata', done, { once: true });
+
       if (v.readyState >= 2) ready();
       else v.addEventListener('loadeddata', ready, { once: true });
     });
@@ -98,8 +134,23 @@ export class RoomSection {
     this.duration = 0;
     this.desiredTime = null;
     v.load();
-    await new Promise((res) => v.addEventListener('loadeddata', res, { once: true }));
-    this.duration = v.duration;
+
+    // Same guard as initial load: a bad swap must not strand the section at
+    // zero height with no explanation.
+    await new Promise((res) => {
+      let settled = false;
+      const ok = () => { if (!settled) { settled = true; clearTimeout(timer);
+                          this.loadError = null; res(); } };
+      const bad = (why) => { if (!settled) { settled = true; this.loadError = why;
+                          console.error(`[RoomSection] ${why}`);
+                          this.onLoadError?.(why); res(); } };
+      const timer = setTimeout(() => bad(`${base}: load timed out (404?)`), 8000);
+      v.addEventListener('loadeddata', ok, { once: true });
+      v.addEventListener('error', () => bad(`${base}: failed to load`), { once: true });
+    });
+
+    this.duration = Number.isFinite(v.duration) && v.duration > 0
+      ? v.duration : FALLBACK_DURATION;
     this._applyLayout();
   }
 

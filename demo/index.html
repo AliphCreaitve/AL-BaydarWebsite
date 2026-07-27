@@ -48,6 +48,16 @@
         room gets its own clip and its own aperture move.</p>
     </div>
 
+    <div class="rs__error" id="loadError" hidden>
+      <strong>Video didn't load.</strong>
+      <span id="loadErrorWhy"></span>
+      <code id="loadErrorPath"></code>
+      <p>The section is showing a fallback height so the page still scrolls.
+         Build the assets with
+         <code>node scripts/process-video.mjs assets/walkthrough.mp4</code>,
+         and check they're committed under <code>demo/assets/</code>.</p>
+    </div>
+
     <div class="rs__progress"><i data-progressbar></i></div>
   </div>
 </section>

@@ -146,6 +146,12 @@ const SOURCE_HINTS = {
 async function onSourceChange() {
   $('sourceHint').innerHTML = SOURCE_HINTS[cfg.source];
   await section.setSource(cfg.source);
+  syncErrorBanner();
+}
+
+/** Clear the banner once a load succeeds, so it can't go stale after a retry. */
+function syncErrorBanner() {
+  if (!section.loadError) $('loadError').hidden = true;
 }
 
 // ---------------------------------------------------------------- panel
@@ -195,6 +201,15 @@ function hudLoop() {
 
 // ---------------------------------------------------------------- go
 
+// A failed load must be visible, not a silent black rectangle.
+section.onLoadError = (why) => {
+  const v = root.querySelector('video');
+  $('loadErrorWhy').textContent = why;
+  $('loadErrorPath').textContent =
+    v.querySelector('source')?.getAttribute('src') ?? '(no source set)';
+  $('loadError').hidden = false;
+};
+
 applyVisual();
 $('modeHint').innerHTML = MODE_HINTS[cfg.mode];
 $('sourceHint').innerHTML = SOURCE_HINTS[cfg.source];
@@ -202,4 +217,5 @@ $('sourceHint').innerHTML = SOURCE_HINTS[cfg.source];
 // finds the video already loaded and resolves straight through.
 await section.setSource(cfg.source);
 await section.init();
+syncErrorBanner();
 hudLoop();
