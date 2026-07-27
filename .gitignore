@@ -25,3 +25,6 @@ assets/*-lastframe.png
 # Tracked as source material, not derived:
 #   shots/           the original 12 MP photographs
 #   assets/demo.mp4  the original AI-generated clip
+
+# wrangler build cache / local state
+.wrangler/
