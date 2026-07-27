@@ -90,9 +90,11 @@ export class RoomSection {
   async setSource(base = this.base) {
     this.base = base;
     const v = this.video;
+    // Relative to this directory, never `../`: the host serves demo/ as the
+    // web root, so a parent-relative path resolves above it and 404s.
     v.innerHTML =
-      `<source src="../assets/${base}-${this._variant()}.mp4" type="video/mp4">`;
-    v.poster = `../assets/${base}-poster.jpg`;
+      `<source src="assets/${base}-${this._variant()}.mp4" type="video/mp4">`;
+    v.poster = `assets/${base}-poster.jpg`;
     this.duration = 0;
     this.desiredTime = null;
     v.load();

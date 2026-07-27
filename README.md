@@ -78,12 +78,30 @@ Outputs, per clip:
 ## Layout
 
 ```
-assets/     source clips + generated derivatives (derivatives are gitignored)
-shots/      the original 12 MP photographs
-demo/       the tuning demo — scroll-video.js is the portable engine
-docs/       architecture.md, video-generation-spec.md
-scripts/    serve.mjs, build-walkthrough.mjs, process-video.mjs
+demo/          ← THE DEPLOYED SITE ROOT. Must be self-contained.
+  index.html
+  assets/      encoded video, committed — the deploy needs these
+assets/        source clips + intermediates (mostly gitignored)
+shots/         the original 12 MP photographs
+docs/          architecture.md, video-generation-spec.md
+scripts/       serve.mjs, build-walkthrough.mjs, process-video.mjs
 ```
+
+## Deployment
+
+The host serves **`demo/` as the web root**, which imposes two rules:
+
+1. **Never reference `../` from inside `demo/`.** A parent-relative path
+   resolves above the web root and 404s in production while working fine
+   locally — the failure only shows up after deploy.
+2. **`demo/assets/` is committed, not gitignored.** Encoded video has to be in
+   the repo or the deploy has nothing to serve. `process-video.mjs` writes
+   there for exactly this reason.
+
+Currently ~38 MB across six files. Cloudflare's per-file cap is 25 MiB and the
+largest here is 20 MB, so there's headroom — but a 1080p re-encode would exceed
+it. If you raise the resolution, move the video to R2 or a CDN rather than
+bundling it.
 
 ## The model
 
