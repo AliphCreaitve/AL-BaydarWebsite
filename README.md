@@ -9,11 +9,14 @@ Video assets are generated, not committed — the repo holds only source materia
 (`shots/`, `assets/demo.mp4`). Build them once:
 
 ```bash
-npm install
+npm.cmd install
 node scripts/build-walkthrough.mjs
 node scripts/process-video.mjs assets/walkthrough.mp4
 node scripts/process-video.mjs assets/demo.mp4
 ```
+
+(On PowerShell use `npm.cmd`; see the note under Deployment. Plain `node` is a
+real executable, so it works everywhere.)
 
 `npm install` pulls an ffmpeg binary (~80 MB), so the first run takes a few
 minutes. Everything after that is local.
@@ -90,9 +93,24 @@ scripts/       serve.mjs, build-walkthrough.mjs, process-video.mjs
 ## Deployment
 
 ```bash
-npx wrangler login     # once
-npm run deploy
+npx.cmd wrangler login
 ```
+
+```bash
+npx.cmd wrangler deploy
+```
+
+> **Windows / PowerShell:** use `npx.cmd` and `npm.cmd`, not `npx` and `npm`.
+> Bare `npx` resolves to `npx.ps1`, which PowerShell refuses to run under the
+> default Restricted execution policy:
+>
+> ```
+> npx : File C:\Program Files\nodejs\npx.ps1 cannot be loaded because
+> running scripts is disabled on this system.
+> ```
+>
+> The `.cmd` shims bypass this entirely — no need to change the execution
+> policy. In Git Bash or cmd.exe, the bare names work fine.
 
 Publishes `demo/` to **albaydar.ceo-6c6.workers.dev**. Config is in
 [wrangler.jsonc](wrangler.jsonc); the worker name matches the existing one, so
