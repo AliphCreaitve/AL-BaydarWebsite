@@ -4,6 +4,9 @@
   "description": "Scroll-driven building tour",
   "private": true,
   "scripts": {
+    "//": "The site is static — demo/ is served as-is. `build` is a deliberate",
+    "///": "no-op so a CI build command can't fail on a missing script.",
+    "build": "echo \"Static site — nothing to build. Assets are committed under demo/assets/.\"",
     "serve": "node scripts/serve.mjs",
     "build:walkthrough": "node scripts/build-walkthrough.mjs",
     "build:assets": "node scripts/process-video.mjs assets/walkthrough.mp4 && node scripts/process-video.mjs assets/demo.mp4",
@@ -14,10 +17,11 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "dependencies": {
-    "ffmpeg-static": "^5.3.0"
-  },
   "devDependencies": {
+    "//": "Both are local tooling only. ffmpeg-static downloads an ~80 MB binary",
+    "///": "on install, so it must never be a runtime dependency — a CI build",
+    "////": "that runs `npm install` would fetch it for no reason, slowly.",
+    "ffmpeg-static": "^5.3.0",
     "wrangler": "^4.0.0"
   }
 }

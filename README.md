@@ -112,6 +112,24 @@ npx.cmd wrangler deploy
 > The `.cmd` shims bypass this entirely — no need to change the execution
 > policy. In Git Bash or cmd.exe, the bare names work fine.
 
+### Or from the Cloudflare dashboard
+
+**Workers & Pages → albaydar → Deployments** → *Retry / Create deployment*.
+Check the commit hash on the latest deployment: if it doesn't match `git log -1`,
+the build never ran and the site is serving stale files.
+
+If builds are failing, check **Settings → Build**:
+
+| Setting | Should be |
+|---|---|
+| Build command | *empty* (or `npm run build`, a no-op) |
+| Root directory | `demo` |
+| Deploy command | *empty*, or `wrangler deploy` |
+
+This site is static — there is nothing to compile. A build command that runs
+`npm install` will pull ffmpeg's ~80 MB binary for no reason and may time out,
+which is why ffmpeg-static is a **devDependency** and must stay one.
+
 Publishes `demo/` to **albaydar.ceo-6c6.workers.dev**. Config is in
 [wrangler.jsonc](wrangler.jsonc); the worker name matches the existing one, so
 this updates that deployment rather than creating a second.
