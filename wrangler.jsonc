@@ -1,15 +1,25 @@
 {
-  // Deploy deterministically with:  npm run deploy
+  // Deploy with:  npx.cmd wrangler deploy
   //
   // "albaydar" matches the existing worker (albaydar.ceo-6c6.workers.dev), so
   // this publishes to the same URL rather than creating a second one.
   "name": "albaydar",
   "compatibility_date": "2025-01-01",
 
-  // Static-assets-only Worker: no server code, just the contents of demo/.
+  // The worker exists only to add HTTP Range support to the video files.
+  // Static assets alone answer a Range request with a whole-file 200, which
+  // leaves the browser unable to seek — scrubbing then does nothing.
+  "main": "worker/index.js",
+
   // demo/ is the web root, which is why nothing inside it may reference ../ —
   // a parent-relative path resolves above the root and 404s in production.
   "assets": {
-    "directory": "./demo"
+    "directory": "./demo",
+    "binding": "ASSETS",
+
+    // Without this the asset server answers matching paths directly and the
+    // worker never runs — so the Range handling above would be dead code.
+    // Scoped to the media directory; everything else is served straight.
+    "run_worker_first": ["/assets/*"]
   }
 }
