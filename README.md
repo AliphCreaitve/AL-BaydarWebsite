@@ -39,6 +39,23 @@ broken.
 Press <kbd>H</kbd> to toggle the tuning panel. Adjust anything, then hit
 **Copy config JSON** — that output is the settings agreement for the full build.
 
+## The rooms
+
+The tour is defined by the `ROOMS` array at the top of
+[demo/controls.js](demo/controls.js) — order is the path through the building.
+Both clips are AI-generated: mixing them with the sharp photo build draws the
+eye straight to the seam.
+
+The photo-built walkthrough is still fully reproducible but is no longer part
+of the deploy (it was 31 MB of the 41 MB payload). To bring it back:
+
+```bash
+node scripts/build-walkthrough.mjs
+node scripts/process-video.mjs assets/walkthrough.mp4
+```
+
+then add `{ id: 'walkthrough', … }` to `ROOMS`.
+
 ## Build a clip from stills (no AI)
 
 The stills in `shots/` are 4032×3024. This renders a walkthrough from them

@@ -1,8 +1,15 @@
 import { RoomTour } from './room-tour.js';
 
-/** Order matters — this is the path through the building. */
+/**
+ * Order matters — this is the path through the building.
+ *
+ * Room 1 is the AI clip, not the photo-built walkthrough. Both clips here come
+ * from the same generation lineage, so they match each other far better than
+ * the sharp 1600x900 photo build would: dissolving a crisp render into a
+ * 640x480 re-compress draws attention straight to the seam.
+ */
 const ROOMS = [
-  { id: 'walkthrough', label: 'entrance → hall → kitchen' },
+  { id: 'demo', label: 'entrance → hall → kitchen' },
   { id: 'room-03', label: 'kitchen → corridor → classroom' },
 ];
 
