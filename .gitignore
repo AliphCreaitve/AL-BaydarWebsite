@@ -28,3 +28,4 @@ assets/*-lastframe.png
 
 # wrangler build cache / local state
 .wrangler/
+assets/room-*.mp4

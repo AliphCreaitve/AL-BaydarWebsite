@@ -1,37 +1,40 @@
-import { RoomSection } from './scroll-video.js';
+import { RoomTour } from './room-tour.js';
+
+/** Order matters — this is the path through the building. */
+const ROOMS = [
+  { id: 'walkthrough', label: 'entrance → hall → kitchen' },
+  { id: 'room-03', label: 'kitchen → corridor → classroom' },
+];
 
 const DEFAULTS = {
-  // Scroll drives the camera. For a walk through a building this beats the
-  // oxman play-on-enter model: scrolling *is* the locomotion.
+  transition: 'fade',
+  transitionSpan: 0.07,
+
   mode: 'scrub',
-  source: 'walkthrough',
-
-  // 100/100 = full-bleed, aperture off. Dial below 100 to open a window.
-  apertureFromW: 100,
-  apertureFromH: 100,
-  apertureSpan: 0.55,
-  apertureRadius: 4,
-  apertureEasing: 'easeOut',
-
   vhPerSecond: 1.2,
   damping: 0.88,
 
+  apertureFromW: 100,
+  apertureFromH: 100,
+  apertureSpan: 0.4,
+  apertureRadius: 4,
+  apertureEasing: 'easeOut',
+
   textReveal: 'words',
   wordStagger: 0.5,
-  overlayFade: 0.10,
+  overlayFade: 0.14,
   overlayDrift: 28,
 
   tint: 0.30,
   vignette: 0.40,
 
-  loop: true,
   restartOnEnter: false,
   pauseOnExit: true,
   showHud: true,
   showBar: true,
 };
 
-const STORAGE_KEY = 'albaydar.scrollvideo.cfg';
+const STORAGE_KEY = 'albaydar.tour.cfg';
 const cfg = { ...DEFAULTS, ...loadSaved() };
 
 function loadSaved() {
@@ -41,27 +44,28 @@ function loadSaved() {
 const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
 
 const $ = (id) => document.getElementById(id);
-const root = $('rs-1');
-const section = new RoomSection(root, cfg);
+const root = $('tour');
+const tour = new RoomTour(root, ROOMS, cfg);
 
-window.__sv = section;
+window.__tour = tour;
 window.__cfg = cfg;
 
 // ---------------------------------------------------------------- sliders
 
 const SLIDERS = [
+  'transitionSpan', 'vhPerSecond', 'damping',
   'apertureFromW', 'apertureFromH', 'apertureSpan', 'apertureRadius',
-  'vhPerSecond', 'damping', 'wordStagger', 'overlayFade', 'overlayDrift',
-  'tint', 'vignette',
+  'wordStagger', 'overlayFade', 'overlayDrift', 'tint', 'vignette',
 ];
 const pct = (v) => `${Math.round(v * 100)}%`;
 const FMT = {
+  transitionSpan: (v) => (+v === 0 ? 'instant' : `${(v * 100).toFixed(1)}% of tour`),
+  vhPerSecond: (v) => `${(+v).toFixed(2)} vh/s`,
+  damping: (v) => (+v === 0 ? 'off' : (+v).toFixed(3)),
   apertureFromW: (v) => `${Math.round(v)}vw`,
   apertureFromH: (v) => `${Math.round(v)}vh`,
   apertureSpan: pct,
   apertureRadius: (v) => `${Math.round(v)}px`,
-  vhPerSecond: (v) => `${(+v).toFixed(2)} vh/s`,
-  damping: (v) => (+v === 0 ? 'off' : (+v).toFixed(3)),
   wordStagger: pct,
   overlayFade: pct,
   overlayDrift: (v) => `${Math.round(v)}px`,
@@ -77,7 +81,7 @@ for (const key of SLIDERS) {
     cfg[key] = parseFloat(el.value);
     $(`${key}_v`).textContent = FMT[key](cfg[key]);
     applyVisual();
-    section.setConfig({ [key]: cfg[key] });
+    tour.setConfig({ [key]: cfg[key] });
     save();
   });
 }
@@ -92,25 +96,23 @@ for (const seg of document.querySelectorAll('[data-seg]')) {
       cfg[key] = btn.dataset.val;
       for (const b of seg.children) b.classList.toggle('is-on', b === btn);
       applyVisual();
-      // a mode change swaps the encode, so this can be async
-      await section.setConfig({ [key]: cfg[key] });
+      await tour.setConfig({ [key]: cfg[key] });
       save();
+      if (key === 'transition') $('transitionHint').innerHTML = TRANSITION_HINTS[cfg.transition];
       if (key === 'mode') $('modeHint').innerHTML = MODE_HINTS[cfg.mode];
-      if (key === 'source') await onSourceChange();
     });
   }
 }
 
 // ---------------------------------------------------------------- checkboxes
 
-const CHECKS = ['loop', 'restartOnEnter', 'pauseOnExit', 'showHud', 'showBar'];
-for (const key of CHECKS) {
+for (const key of ['restartOnEnter', 'pauseOnExit', 'showHud', 'showBar']) {
   const el = $(key);
   el.checked = cfg[key];
   el.addEventListener('change', () => {
     cfg[key] = el.checked;
     applyVisual();
-    section.setConfig({ [key]: cfg[key] });
+    tour.setConfig({ [key]: cfg[key] });
     save();
   });
 }
@@ -120,39 +122,40 @@ function applyVisual() {
   s.setProperty('--tint', cfg.tint);
   s.setProperty('--vignette', cfg.vignette);
   $('hud').hidden = !cfg.showHud;
-  root.querySelector('.rs__progress').hidden = !cfg.showBar;
+  root.querySelector('.tour__progress').hidden = !cfg.showBar;
 }
 
 // ---------------------------------------------------------------- hints
 
+const TRANSITION_HINTS = {
+  fade: 'Cross-dissolve. Both clips keep scrubbing through the overlap, so it ' +
+        'reads as movement rather than two stills mixing. Most forgiving of a ' +
+        'seam that doesn\'t line up exactly.',
+  black: 'Dips through black between rooms. Cleaner separation, but it breaks ' +
+         'the illusion of one continuous walk.',
+  cut: 'Hard cut at the boundary. Only works if the last frame of one clip and ' +
+       'the first of the next are near-identical.',
+};
+
 const MODE_HINTS = {
-  scrub:
-    'Scroll drives the camera — stop and it stops, scroll back and you walk ' +
-    'back. Loads the dense-keyframe encode (20 MB).',
-  play:
-    'The oxman model: the clip plays on its own clock and scroll only drives ' +
-    'the aperture and copy. Loads the lighter encode (11 MB).',
+  scrub: 'Scroll drives the camera. Loads the dense-keyframe encodes.',
+  play: 'Clips play on their own clock; scroll drives the aperture and copy.',
 };
 
-const SOURCE_HINTS = {
-  walkthrough:
-    'Built from the 12 stills — 1600&times;900, sharp, no warping. Motion is ' +
-    'push + dissolve rather than true parallax.',
-  demo:
-    'The original AI clip — 864&times;496. Continuous camera motion, but soft ' +
-    'and the stonework warps.',
+// ---------------------------------------------------------------- seam jump
+
+$('jumpSeam').addEventListener('click', () => {
+  const seam = tour.rooms[0].end;               // boundary in tour progress
+  const top = root.offsetTop;
+  window.scrollTo({ top: top + tour.scrollRange * seam, behavior: 'smooth' });
+});
+
+// ---------------------------------------------------------------- errors
+
+tour.onLoadError = (roomId, why) => {
+  $('loadErrorWhy').textContent = `${roomId}: ${why}`;
+  $('loadError').hidden = false;
 };
-
-async function onSourceChange() {
-  $('sourceHint').innerHTML = SOURCE_HINTS[cfg.source];
-  await section.setSource(cfg.source);
-  syncErrorBanner();
-}
-
-/** Clear the banner once a load succeeds, so it can't go stale after a retry. */
-function syncErrorBanner() {
-  if (!section.loadError) $('loadError').hidden = true;
-}
 
 // ---------------------------------------------------------------- panel
 
@@ -184,38 +187,31 @@ $('resetCfg').addEventListener('click', () => {
 // ---------------------------------------------------------------- hud
 
 const bar = root.querySelector('[data-progressbar]');
-const video = root.querySelector('video');
+const seamMark = root.querySelector('[data-seammark]');
+
 function hudLoop() {
   requestAnimationFrame(hudLoop);
-  const p = section.progress ?? 0;
-  if (cfg.showBar) bar.style.width = `${(p * 100).toFixed(2)}%`;
+  const p = tour.progress ?? 0;
+  if (cfg.showBar) {
+    bar.style.width = `${(p * 100).toFixed(2)}%`;
+    if (tour.rooms[0].end) seamMark.style.left = `${(tour.rooms[0].end * 100).toFixed(2)}%`;
+  }
   if (cfg.showHud) {
-    $('hud_fps').textContent = section.stats.fps;
+    const room = tour.activeRoom();
+    $('hud_fps').textContent = tour.stats.fps;
     $('hud_p').textContent = p.toFixed(3);
-    $('hud_t').textContent = `${video.currentTime.toFixed(2)}s`;
-    $('hud_state').textContent =
-      cfg.mode === 'scrub' ? 'scrubbed' : (video.paused ? 'paused' : 'playing');
-    $('hud_ap').textContent = section.aperture.style.width || '—';
+    $('hud_room').textContent = room.id;
+    $('hud_t').textContent = `${room.video.currentTime.toFixed(2)}s`;
+    $('hud_state').textContent = tour.inTransition()
+      ? 'transition'
+      : (cfg.mode === 'scrub' ? 'scrubbed' : (room.video.paused ? 'paused' : 'playing'));
   }
 }
 
 // ---------------------------------------------------------------- go
 
-// A failed load must be visible, not a silent black rectangle.
-section.onLoadError = (why) => {
-  const v = root.querySelector('video');
-  $('loadErrorWhy').textContent = why;
-  $('loadErrorPath').textContent =
-    v.querySelector('source')?.getAttribute('src') ?? '(no source set)';
-  $('loadError').hidden = false;
-};
-
 applyVisual();
+$('transitionHint').innerHTML = TRANSITION_HINTS[cfg.transition];
 $('modeHint').innerHTML = MODE_HINTS[cfg.mode];
-$('sourceHint').innerHTML = SOURCE_HINTS[cfg.source];
-// setSource first — it picks the encode matching the current mode, so init()
-// finds the video already loaded and resolves straight through.
-await section.setSource(cfg.source);
-await section.init();
-syncErrorBanner();
+await tour.init();
 hudLoop();

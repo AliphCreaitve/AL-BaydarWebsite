@@ -96,9 +96,9 @@ h2 {
 
 /* ---------------- room section ---------------- */
 
-.rs { position: relative; }
+.tour { position: relative; }
 
-.rs__stage {
+.tour__stage {
   position: sticky;
   top: 0;
   height: 100svh;
@@ -116,7 +116,7 @@ h2 {
  * Absolute rather than fixed: the stage is already pinned by `sticky`, and
  * `fixed` would escape the section and stay on screen over the intro/outro.
  */
-.rs__aperture {
+.tour__aperture {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -126,7 +126,19 @@ h2 {
   will-change: width, height;
 }
 
-.rs__aperture video {
+/**
+ * Every room stacks in the same place. They have to overlap exactly for a
+ * dissolve to work — if they were laid out in sequence, the only transitions
+ * possible would be a cut or a slide.
+ */
+.room {
+  position: absolute;
+  inset: 0;
+  will-change: opacity;
+  background: #000;
+}
+
+.tour__aperture video {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -136,7 +148,17 @@ h2 {
   display: block;
 }
 
-.rs__tint {
+/* Seam marker on the progress bar, so the boundary is findable while tuning. */
+.tour__progress b {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 8px;
+  background: #fff;
+  opacity: .55;
+}
+
+.tour__tint {
   position: absolute; inset: 0;
   background: linear-gradient(180deg,
     rgba(6,7,9,.85) 0%,
@@ -147,7 +169,7 @@ h2 {
   pointer-events: none;
 }
 
-.rs__vignette {
+.tour__vignette {
   position: absolute; inset: 0;
   background: radial-gradient(120% 90% at 50% 50%,
     transparent 42%, rgba(0,0,0,.85) 100%);
@@ -156,7 +178,7 @@ h2 {
 }
 
 /* Copy lives outside the aperture, so a small aperture never clips the type. */
-.rs__copy {
+.tour__copy {
   position: absolute;
   bottom: clamp(4rem, 12vh, 9rem);
   max-width: min(30rem, 42vw);
@@ -165,18 +187,18 @@ h2 {
   z-index: 5;
   transform: translate3d(0, var(--drift, 0px), 0);
 }
-.rs__copy--left  { left: clamp(1.5rem, 7vw, 7rem); }
-.rs__copy--right { right: clamp(1.5rem, 7vw, 7rem); text-align: right; }
+.tour__copy--left  { left: clamp(1.5rem, 7vw, 7rem); }
+.tour__copy--right { right: clamp(1.5rem, 7vw, 7rem); text-align: right; }
 
-.rs__copy h2 { margin-bottom: .7rem; }
-.rs__copy .body {
+.tour__copy h2 { margin-bottom: .7rem; }
+.tour__copy .body {
   color: rgba(242,240,236,.72);
   font-size: .95rem;
   line-height: 1.6;
   margin: 0;
   text-wrap: pretty;
 }
-.rs__copy .eyebrow { margin-bottom: .9rem; }
+.tour__copy .eyebrow { margin-bottom: .9rem; }
 
 /* word-level reveal: each word rides up out of a clipping mask */
 .word {
@@ -191,7 +213,7 @@ h2 {
 
 /* Shown only when the clip fails to load — names the problem instead of
    leaving a black rectangle the user has to guess at. */
-.rs__error {
+.tour__error {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -206,28 +228,28 @@ h2 {
   color: var(--fg);
   backdrop-filter: blur(10px);
 }
-.rs__error[hidden] { display: none; }
-.rs__error strong { color: #e88; display: block; margin-bottom: .4rem; font-size: .95rem; }
-.rs__error code {
+.tour__error[hidden] { display: none; }
+.tour__error strong { color: #e88; display: block; margin-bottom: .4rem; font-size: .95rem; }
+.tour__error code {
   display: inline-block;
   background: rgba(255,255,255,.09);
   padding: .1em .4em; border-radius: 3px;
   font-size: .95em; word-break: break-all;
 }
-.rs__error p { color: var(--muted); margin: .8rem 0 0; font-size: .76rem; }
+.tour__error p { color: var(--muted); margin: .8rem 0 0; font-size: .76rem; }
 
-.rs__progress {
+.tour__progress {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   height: 2px;
   background: rgba(255,255,255,.10);
   z-index: 6;
 }
-.rs__progress i {
+.tour__progress i {
   display: block; height: 100%; width: 0%;
   background: var(--accent);
 }
-.rs__progress[hidden] { display: none; }
+.tour__progress[hidden] { display: none; }
 
 /* ---------------- control panel ---------------- */
 

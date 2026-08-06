@@ -11,54 +11,72 @@
 <!-- ============ intro ============ -->
 <section class="pane pane--intro">
   <div class="pane__inner">
-    <p class="eyebrow">Demo · one clip</p>
-    <h1>Scroll to enter<br>the building.</h1>
+    <p class="eyebrow">Demo · two rooms</p>
+    <h1>Scroll to walk<br>the building.</h1>
     <p class="lede">
-      The clip plays on its own clock. What the scroll drives is the aperture
-      it's seen through — and the copy over it. Every setting is live in the
-      panel; tune it, then export the config.
+      Two clips joined at the kitchen. The transition between them is the thing
+      under test — style and length are both live in the panel.
     </p>
     <div class="scroll-cue"><span></span></div>
   </div>
 </section>
 
-<!-- ============ the room section ============ -->
-<section class="rs" id="rs-1">
-  <div class="rs__stage">
-    <!-- fixed + centred; scroll animates its size, not the video -->
-    <div class="rs__aperture" data-aperture>
-      <!-- source is set by JS: the encode has to match the playback model -->
-      <video muted playsinline preload="auto" poster="assets/walkthrough-poster.jpg"></video>
-      <div class="rs__tint"></div>
-      <div class="rs__vignette"></div>
+<!-- ============ the tour ============ -->
+<section class="tour" id="tour">
+  <div class="tour__stage" data-stage>
+    <div class="tour__aperture" data-aperture>
+
+      <div class="room" data-room="walkthrough">
+        <video muted playsinline preload="auto"></video>
+      </div>
+
+      <div class="room" data-room="room-03">
+        <video muted playsinline preload="auto"></video>
+      </div>
+
+      <div class="tour__tint"></div>
+      <div class="tour__vignette"></div>
     </div>
 
-    <!-- copy sits outside the aperture so it is never clipped by it -->
-    <div class="rs__copy rs__copy--left" data-overlay data-in="0.06" data-out="0.46">
+    <!-- copy sits outside the aperture so a small aperture never clips it -->
+    <div class="tour__copy tour__copy--left" data-overlay-room="walkthrough"
+         data-in="0.05" data-out="0.40">
       <p class="eyebrow">01 — Arrival</p>
       <h2 data-split>The entrance</h2>
-      <p class="body">Where the work begins. Copy is scrubbed to the scrollbar
-        even though the footage is not.</p>
+      <p class="body">Through the door and into the hall.</p>
     </div>
 
-    <div class="rs__copy rs__copy--right" data-overlay data-in="0.56" data-out="0.96">
-      <p class="eyebrow">02 — The room</p>
-      <h2 data-split>Inside the hall</h2>
-      <p class="body">Second beat of the same section. In the full site each
-        room gets its own clip and its own aperture move.</p>
+    <div class="tour__copy tour__copy--right" data-overlay-room="walkthrough"
+         data-in="0.52" data-out="0.92">
+      <p class="eyebrow">02 — The hall</p>
+      <h2 data-split>Where we gather</h2>
+      <p class="body">The main room, set for a session.</p>
     </div>
 
-    <div class="rs__error" id="loadError" hidden>
-      <strong>Video didn't load.</strong>
+    <div class="tour__copy tour__copy--left" data-overlay-room="room-03"
+         data-in="0.12" data-out="0.50">
+      <p class="eyebrow">03 — The kitchen</p>
+      <h2 data-split>Somewhere to breathe</h2>
+      <p class="body">The second clip picks up here — same kitchen, so the
+        seam has something to hold onto.</p>
+    </div>
+
+    <div class="tour__copy tour__copy--right" data-overlay-room="room-03"
+         data-in="0.62" data-out="0.96">
+      <p class="eyebrow">04 — The classroom</p>
+      <h2 data-split>And back to work</h2>
+      <p class="body">Down the corridor into the teaching room.</p>
+    </div>
+
+    <div class="tour__progress"><i data-progressbar></i><b data-seammark></b></div>
+
+    <div class="tour__error" id="loadError" hidden>
+      <strong>A clip didn't load.</strong>
       <span id="loadErrorWhy"></span>
-      <code id="loadErrorPath"></code>
-      <p>The section is showing a fallback height so the page still scrolls.
-         Build the assets with
-         <code>node scripts/process-video.mjs assets/walkthrough.mp4</code>,
+      <p>The tour is using a fallback length so the page still scrolls. Build
+         the assets with <code>node scripts/process-video.mjs assets/&lt;clip&gt;.mp4</code>
          and check they're committed under <code>demo/assets/</code>.</p>
     </div>
-
-    <div class="rs__progress"><i data-progressbar></i></div>
   </div>
 </section>
 
@@ -67,8 +85,8 @@
   <div class="pane__inner">
     <h2>Next room</h2>
     <p class="lede">
-      Clip 02 picks up here — starting from the frame this one ended on, so the
-      building reads as one continuous space.
+      Clip 03 would pick up from the classroom, seeded with
+      <code>assets/room-03-lastframe.png</code>.
     </p>
   </div>
 </section>
@@ -82,6 +100,29 @@
 
   <div class="panel__body">
 
+    <div class="grp grp--hero">
+      <label class="grp__title">Transition between rooms</label>
+      <div class="seg" data-seg="transition">
+        <button data-val="fade" class="is-on">dissolve</button>
+        <button data-val="black">via black</button>
+        <button data-val="cut">cut</button>
+      </div>
+      <p class="hint" id="transitionHint"></p>
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="transitionSpan">Transition length</label><output id="transitionSpan_v"></output></div>
+      <input type="range" id="transitionSpan" min="0" max="0.3" step="0.005" value="0.07">
+      <p class="hint">How much scrolling the two clips overlap for. Longer is
+        more forgiving of a mismatched seam.</p>
+    </div>
+
+    <div class="grp">
+      <button class="btn btn--ghost" id="jumpSeam">Jump to the seam</button>
+    </div>
+
+    <hr>
+
     <div class="grp">
       <label class="grp__title">Playback model</label>
       <div class="seg" data-seg="mode">
@@ -92,12 +133,15 @@
     </div>
 
     <div class="grp">
-      <label class="grp__title">Source clip</label>
-      <div class="seg" data-seg="source">
-        <button data-val="walkthrough" class="is-on">from photos</button>
-        <button data-val="demo">AI clip</button>
-      </div>
-      <p class="hint" id="sourceHint"></p>
+      <div class="row"><label for="vhPerSecond">Scroll pacing</label><output id="vhPerSecond_v"></output></div>
+      <input type="range" id="vhPerSecond" min="0.2" max="4" step="0.05" value="1.2">
+      <p class="hint">Viewport-heights of scroll per second of clip. Each room's
+        share is proportional to its own length, so camera speed stays even.</p>
+    </div>
+
+    <div class="grp">
+      <div class="row"><label for="damping">Smoothing</label><output id="damping_v"></output></div>
+      <input type="range" id="damping" min="0" max="0.999" step="0.001" value="0.88">
     </div>
 
     <hr>
@@ -108,43 +152,18 @@
       <input type="range" id="apertureFromW" min="20" max="100" step="1" value="100">
       <div class="row"><label for="apertureFromH">Start height</label><output id="apertureFromH_v"></output></div>
       <input type="range" id="apertureFromH" min="20" max="100" step="1" value="100">
-      <p class="hint">Borrowed from oxman: the clip starts as a window and opens
-        to full-bleed as you scroll. At 100/100 it's off — full-bleed throughout.
-        Try 58 / 52 to see it.</p>
+      <p class="hint">The clip starts as a window and opens to full-bleed.
+        At 100/100 it's off. Try 58 / 52.</p>
     </div>
 
     <div class="grp">
       <div class="row"><label for="apertureSpan">Opens over</label><output id="apertureSpan_v"></output></div>
-      <input type="range" id="apertureSpan" min="0.1" max="1" step="0.01" value="0.55">
-      <p class="hint">How much of the section the opening takes.</p>
+      <input type="range" id="apertureSpan" min="0.1" max="1" step="0.01" value="0.4">
     </div>
 
     <div class="grp">
       <div class="row"><label for="apertureRadius">Corner radius</label><output id="apertureRadius_v"></output></div>
       <input type="range" id="apertureRadius" min="0" max="48" step="1" value="4">
-    </div>
-
-    <div class="grp">
-      <label class="grp__title">Aperture easing</label>
-      <div class="seg" data-seg="apertureEasing">
-        <button data-val="easeOut" class="is-on">out</button>
-        <button data-val="easeInOut">in-out</button>
-        <button data-val="linear">linear</button>
-      </div>
-    </div>
-
-    <hr>
-
-    <div class="grp">
-      <div class="row"><label for="vhPerSecond">Section length</label><output id="vhPerSecond_v"></output></div>
-      <input type="range" id="vhPerSecond" min="0.2" max="4" step="0.05" value="1.2">
-      <p class="hint">Viewport-heights of scroll per second of clip. Sets how long the section lasts.</p>
-    </div>
-
-    <div class="grp">
-      <div class="row"><label for="damping">Smoothing</label><output id="damping_v"></output></div>
-      <input type="range" id="damping" min="0" max="0.999" step="0.001" value="0.88">
-      <p class="hint">Weight on the aperture and copy. Oxman uses GSAP <code>scrub: 0.5</code>, which is the same idea.</p>
     </div>
 
     <hr>
@@ -164,7 +183,7 @@
 
     <div class="grp">
       <div class="row"><label for="overlayFade">Reveal window</label><output id="overlayFade_v"></output></div>
-      <input type="range" id="overlayFade" min="0.01" max="0.3" step="0.005" value="0.1">
+      <input type="range" id="overlayFade" min="0.01" max="0.4" step="0.005" value="0.14">
     </div>
 
     <div class="grp">
@@ -177,7 +196,6 @@
     <div class="grp">
       <div class="row"><label for="tint">Tint over video</label><output id="tint_v"></output></div>
       <input type="range" id="tint" min="0" max="0.85" step="0.01" value="0.3">
-      <p class="hint">Text legibility vs. image fidelity — the trade-off worth arguing about.</p>
     </div>
 
     <div class="grp">
@@ -188,7 +206,6 @@
     <hr>
 
     <div class="grp">
-      <label class="chk"><input type="checkbox" id="loop" checked> Loop the clip</label>
       <label class="chk"><input type="checkbox" id="restartOnEnter"> Restart on entry</label>
       <label class="chk"><input type="checkbox" id="pauseOnExit" checked> Pause on exit</label>
       <label class="chk"><input type="checkbox" id="showHud" checked> Debug HUD</label>
@@ -206,10 +223,10 @@
 
 <div class="hud" id="hud">
   <div><span>fps</span><b id="hud_fps">—</b></div>
-  <div><span>scroll</span><b id="hud_p">—</b></div>
+  <div><span>tour</span><b id="hud_p">—</b></div>
+  <div><span>room</span><b id="hud_room">—</b></div>
   <div><span>clip time</span><b id="hud_t">—</b></div>
-  <div><span>transport</span><b id="hud_state">—</b></div>
-  <div><span>aperture</span><b id="hud_ap">—</b></div>
+  <div><span>state</span><b id="hud_state">—</b></div>
 </div>
 
 <button class="panel-open" id="panelOpen" hidden>Tuning</button>
